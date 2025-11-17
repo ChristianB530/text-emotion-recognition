@@ -1,0 +1,63 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import re
+from collections import Counter
+import warnings
+warnings.filterwarnings('ignore')
+
+# Machine Learning imports
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score, classification_report
+from sklearn.metrics import precision_recall_curve, average_precision_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.class_weight import compute_class_weight
+
+# Deep Learning imports
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
+
+# Set random seeds for reproducibility
+torch.manual_seed(42)
+np.random.seed(42)
+
+class EmotionDataLoader:
+    """Loader for emotion recognition datasets"""
+    
+    def __init__(self):
+        self.label_map = {
+            0: 'sadness',
+            1: 'joy', 
+            2: 'love',
+            3: 'anger',
+            4: 'fear',
+            5: 'surprise'
+        }
+    
+    def load_emotion_dataset(self):
+        """Load the Emotion Dataset from Kaggle with 6 labels"""
+        try:
+            train_df = pd.read_csv('training.csv')
+            val_df = pd.read_csv('validation.csv')
+            test_df = pd.read_csv('test.csv')
+            
+            print("Emotion Dataset loaded successfully!")
+            print(f"Training samples: {len(train_df):,}")
+            print(f"Validation samples: {len(val_df):,}")
+            print(f"Test samples: {len(test_df):,}")
+            
+            # Show dataset statistics
+            self._show_dataset_stats(train_df, "Training")
+            self._show_dataset_stats(val_df, "Validation")
+            self._show_dataset_stats(test_df, "Test")
+            
+            return train_df, val_df, test_df
+            
+        except FileNotFoundError as e:
+            print(f"Error loading dataset: {e}")
+            return None, None, None
+    
