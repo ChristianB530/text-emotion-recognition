@@ -52,23 +52,16 @@ class EmotionDataLoader:
             print(f"Test samples: {len(test_df):,}")
             
             # Show dataset statistics
-            self._show_dataset_stats(train_df, "Training")
-            self._show_dataset_stats(val_df, "Validation")
-            self._show_dataset_stats(test_df, "Test")
+            #self._show_dataset_stats(train_df, "Training")
+            #self._show_dataset_stats(val_df, "Validation")
+            #self._show_dataset_stats(test_df, "Test")
             
             return train_df, val_df, test_df
             
         except FileNotFoundError as e:
             print(f"Error loading dataset: {e}")
             return None, None, None
-
-
-
-
-
-
-
-
+    
 
 class BaselineModel:
     """
@@ -128,3 +121,36 @@ class BaselineModel:
     def predict_proba(self, X):
         """Get prediction probabilities"""
         return self.model.predict_proba(X)
+    
+
+# Initialize and load data
+loader = EmotionDataLoader()
+train_df, val_df, test_df = loader.load_emotion_dataset()
+
+# Initialize BaselineModel
+baseline = BaselineModel()
+
+y_train = baseline.label_encoder.fit_transform(train_df['label'])
+y_val = baseline.label_encoder.transform(val_df['label'])
+y_test = baseline.label_encoder.transform(test_df['label'])
+X_train = baseline.prepare_features(train_df['text'], fit=True)
+X_val   = baseline.prepare_features(val_df['text'], fit=False)
+X_test  = baseline.prepare_features(test_df['text'], fit=False)
+
+model = baseline.train(X_train, y_train, X_val, y_val)
+
+# Evaluate on test set
+y_pred_test = baseline.predict(X_test)
+target_names = [str(label) for label in baseline.label_encoder.inverse_transform(sorted(np.unique(y_test)))]
+print(classification_report(y_test, y_pred_test, target_names=target_names))
+
+
+# Predict on new data
+sample_text = ["I am so sad! Lost my job today."]
+sample_features = baseline.prepare_features(sample_text, fit=False)
+prediction = baseline.predict(sample_features)
+probabilities = baseline.predict_proba(sample_features)
+print(probabilities)
+
+
+
